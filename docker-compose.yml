@@ -1,0 +1,34 @@
+services:
+  drone:
+    image: drone/drone:2
+    volumes:
+      - /var/lib/drone:/data
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      - DRONE_DEBUG=true
+      - DRONE_SERVER_PROTO=http
+      - DRONE_SERVER_HOST=<DRONE_SERVER_HOST>
+      - DRONE_RPC_SECRET=<RPC_SECRET>
+      - DRONE_GITEA_SERVER=https://codeberg.org/
+      - DRONE_GITEA_CLIENT_ID=<DRONE_GITEA_CLIENT_ID>
+      - DRONE_GITEA_CLIENT_SECRET=<DRONE_GITEA_CLIENT_SECRET>
+
+  drone-runner:
+    container_name: drone-runner
+    image: drone/drone-runner-docker:1
+    restart: unless-stopped
+    depends_on:
+      - drone
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 3000:3000
+    environment:
+      - DRONE_DEBUG=true
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_HOST=drone:80
+      - DRONE_RPC_SECRET=<RPC_SECRET>
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NAME=first-runner
